@@ -1,4 +1,4 @@
-name: Copy Files from Another GitHub Repo
+name: copy files from another repo
 
 on:
   repository_dispatch:
@@ -9,55 +9,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Source Repository
+    - name: get branch name
+      id: timestamp
+      run: echo "branch_name=volc-update-$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
+
+    - name: checkout source repository
       run: |
         git clone https://github.com/bpeng/volc-lab.git
         cd volc-lab
         git fetch --all
         git checkout main  # or the specific branch you want to copy from
+        cd ..
 
-    - name: Checkout Target Repository
+    - name: checkout target repository
       uses: actions/checkout@v2
       with:
         repository: bpeng/volc-dash
         token: ${{ secrets.VOLC_PAT }}
         path: volc-dash
 
-    - name: Ensure Destination Directory Exists
-      run: mkdir -p volc-dash/dashboards/
-
-    - name: Get Current Timestamp
-      id: timestamp
-      run: echo "branch_name=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
-
-    - name: create branch
+    - name: copy files across repos
       run: |
         cd volc-dash
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git checkout -b ${{ env.branch_name }}
-
-    - name: Copy Files
-      run: |
-        cp -r volc-lab/dashboards/* volc-dash/dashboards/
-
-    - name: Commit and Push Changes to Target Repository
-      run: |
-        cd volc-dash
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        mkdir -p dashboards/
+        cp -r ../volc-lab/dashboards/* dashboards/
         git add dashboards
         git commit -m "Copy files from source repository"
         git push --set-upstream origin ${{ env.branch_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.VOLC_PAT }}
 
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v4
-      with:
-        token: ${{ secrets.VOLC_PAT }}
-        commit-message: Copy files from source repository
-        branch: ${{ env.branch_name }}
-        base: main  # or the branch you want to merge into
-        title: "Copy files from source repository"
-        body: "This PR copies files from the gitlab."
+    #- name: Create Pull Request
+    #  uses: peter-evans/create-pull-request@v4
+    #  with:
+    #    token: ${{ secrets.VOLC_PAT }}
+    #    commit-message: Copy files from source repository
+    #    branch: ${{ env.branch_name }}
+    #    base: main
+    #    path: volc-dash
+    #    title: "Copy files from source repository"
+    #    body: "This PR copies files from the source repository to the target repository."
+
+
