@@ -26,6 +26,17 @@ jobs:
     - name: Ensure Destination Directory Exists
       run: mkdir -p volc-dash/dashboards/
 
+    - name: Get Current Timestamp
+      id: timestamp
+      run: echo "branch_name=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
+    - name: create branch
+      run: |
+        cd volc-dash
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout -b ${{ env.branch_name }}
+
     - name: Copy Files
       run: |
         cp -r volc-lab/dashboards/* volc-dash/dashboards/
@@ -37,6 +48,16 @@ jobs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git add dashboards
         git commit -m "Copy files from source repository"
-        git push
+        git push --set-upstream origin ${{ env.branch_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.VOLC_PAT }}
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        token: ${{ secrets.VOLC_PAT }}
+        commit-message: Copy files from source repository
+        branch: ${{ env.branch_name }}
+        base: main  # or the branch you want to merge into
+        title: "Copy files from source repository"
+        body: "This PR copies files from the gitlab."
