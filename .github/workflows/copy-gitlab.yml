@@ -23,6 +23,9 @@ jobs:
         token: ${{ secrets.VOLC_PAT }}
         path: volc-dash
 
+    - name: Ensure Destination Directory Exists
+      run: mkdir -p volc-dash/dashboards/
+
     - name: Copy Files
       run: |
         cp -r volc-lab/dashboards/* volc-dash/dashboards/
