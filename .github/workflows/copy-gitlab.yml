@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: bpeng/volc-dash
-        token: ${{ secrets.GITHUB_PAT }}
+        token: ${{ secrets.VOLC_PAT }}
         path: volc-dash
 
     - name: Copy Files
@@ -36,4 +36,4 @@ jobs:
         git commit -m "Copy files from source repository"
         git push
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_PAT }}
+        GITHUB_TOKEN: ${{ secrets.VOLC_PAT }}
