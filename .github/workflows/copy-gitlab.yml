@@ -9,17 +9,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
     - name: get branch name
       id: timestamp
       run: echo "branch_name=volc-update-$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
 
-    - name: checkout source repository
+    - name: Set up Git
       run: |
-        git clone https://github.com/bpeng/volc-lab.git
-        cd volc-lab
-        git fetch --all
-        git checkout main  # or the specific branch you want to copy from
-        cd ..
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: checkout GNS gitlab repo
+      env:
+        GITLAB_PAT: ${{ secrets.VOLC_PAT_GL }}
+      run: |
+          git clone https://oauth2:${GITLAB_PAT}@git.gns.cri.nz:volcanology/volcano-dashboard.git
+        # git clone git@git.gns.cri.nz:volcanology/volcano-dashboard.git
+          #cd volcano-dashboard
+          #git fetch --all
+          #git checkout main  # or the specific branch you want to copy from
+          #cd ..
 
     - name: checkout target repository
       uses: actions/checkout@v2
@@ -35,7 +46,7 @@ jobs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git checkout -b ${{ env.branch_name }}
         mkdir -p dashboards/
-        cp -r ../volc-lab/dashboards/* dashboards/
+        cp -r ../volcano-dashboard/dashboards/* dashboards/
         git add dashboards
         git commit -m "Copy files from source repository"
         git push --set-upstream origin ${{ env.branch_name }}
